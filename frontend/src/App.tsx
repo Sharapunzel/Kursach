@@ -1,35 +1,24 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BffProvider, useBff } from "./components/Bff";
+import { UserClaims } from "./components/UserClaims";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const LogoutButton: React.FC = () => {
+  const { logout } = useBff();
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <button className='logout-button' onClick={logout}>
+      Logout
+    </button>
+  );
+};
 
-export default App
+const App: React.FC = () => (
+  <BffProvider baseUrl='http://localhost:8001/BFF'>
+    <div className='card'>
+      <UserClaims />
+    </div>
+    <div className='card'>
+      <LogoutButton />
+    </div>
+  </BffProvider>
+);
+
+export default App;
