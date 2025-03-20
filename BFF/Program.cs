@@ -1,7 +1,13 @@
+using BFF.Application.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Globalization;
 
 namespace BFF
 {
@@ -19,6 +25,8 @@ namespace BFF
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddSingleton<KeycloakTokenService>();
+            builder.Services.AddScoped<CookieValidationHandler>();
 
             builder.Services.AddCors(options =>
             {
@@ -27,7 +35,7 @@ namespace BFF
                     policy.AllowAnyMethod()
                                 .AllowAnyHeader()
                                 .AllowAnyMethod()
-                                .WithOrigins("http://localhost:5173")
+                                .WithOrigins("http://localhost:5173", "http://192.168.0.102:5173")
                                 .AllowCredentials();
                 });
             });
@@ -38,18 +46,29 @@ namespace BFF
             // настройка 
             builder.Services.AddAuthentication(options =>
             {
-                options.DefaultScheme = "cookie";
+                options.DefaultScheme = "Cookies";
                 options.DefaultChallengeScheme = "oidc";
             })
-                .AddCookie("cookie", options =>
+                .AddCookie("Cookies", options =>
                 {
-                    options.Cookie.Name = "web";
-                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    options.Events.OnSigningOut = async e => { await e.HttpContext.RevokeRefreshTokenAsync(); };
+                    options.Cookie.Name = "bff_cookies";
+                    //options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    //equeal to session time (refresh token lifespan)
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
+                    options.LoginPath = "/BFF/Login";
+                    options.Events.OnSigningOut = async e => { await e.HttpContext.SignOutAsync(); };
+
+                    var serviceProvider = builder.Services.BuildServiceProvider();
+                    var cookieValidationService = serviceProvider.GetRequiredService<CookieValidationHandler>();
+
+                    options.Events.OnValidatePrincipal = cookieValidationService.OnValidatePrincipal;
+
                 })
                 .AddOpenIdConnect("oidc", options =>
                 {
                     options.Authority = "http://localhost:8080/realms/master";
+                    options.SignInScheme = "Cookies";
+                    options.SignOutScheme = "Cookies";
 
                     options.ClientId = "BFF-client";
                     options.ClientSecret = "hTLKs8mqVqb0NtYqiH0HXMNREFv4oHU4";
@@ -77,10 +96,29 @@ namespace BFF
                         NameClaimType = "name",
                         RoleClaimType = "role"
                     };
+                    /*options.Events = new OpenIdConnectEvents()
+                    {
+                        OnTokenValidated = c =>
+                        {
+                            c.Properties.StoreTokens(new[] { new AuthenticationToken
+                                {
+                                    Name = "id_token",
+                                    Value = c.ProtocolMessage.IdToken
+                                }
+                            });
+
+                            return Task.CompletedTask;
+                        }
+                    };*/
                 });
 
             // adds services for token management
-            builder.Services.AddOpenIdConnectAccessTokenManagement();
+            /*builder.Services.AddOpenIdConnectAccessTokenManagement();
+            builder.Services.AddClientCredentialsTokenManagement(options =>
+            {
+                options.CacheLifetimeBuffer = 60;
+                options.CacheKeyPrefix = "Duende.AccessTokenManagement.Cache::";
+            });*/
 
 
             var app = builder.Build();

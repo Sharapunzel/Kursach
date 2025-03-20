@@ -9,17 +9,28 @@ namespace BFF.Controllers
     [Route("[controller]")]
     public class BFFController : ControllerBase
     {
-        //private readonly ILogger<WeatherForecastController> _logger;
+        /*private readonly IUserTokenManagementService _userTokenManagementService;
 
-        //public WeatherForecastController(ILogger<WeatherForecastController> logger)
-        //{
-        //    _logger = logger;
-        //}
+        public BFFController(IUserTokenManagementService userTokenManagementService)
+        {
+            _userTokenManagementService = userTokenManagementService;
+        }*/
 
         [HttpGet("[action]")]
         public async Task<IActionResult> Get()
         {
-            return Ok("hello world!");
+            if (User.Identity?.IsAuthenticated != true)
+                return Unauthorized();
+
+            var token = await HttpContext.GetTokenAsync("access_token");
+
+            return Ok(new {token = token});
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetUsual()
+        {
+            return Ok(new { info = "Hello world!" });
         }
 
         [HttpGet("[action]")]

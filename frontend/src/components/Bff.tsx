@@ -14,6 +14,7 @@ interface BffContextProps {
   checkSession: () => Promise<void>;
   login: () => void;
   logout: () => Promise<void>;
+  checkToken: () => Promise<void>;
 }
 
 // Creating a context for BFF to share state and functions across the application
@@ -23,6 +24,7 @@ const BffContext = createContext<BffContextProps>({
   checkSession: async () => {},
   login: () => {},
   logout: async () => {},
+  checkToken: async () => {},
 });
 
 interface BffProviderProps {
@@ -74,6 +76,20 @@ export const BffProvider: FC<BffProviderProps> = ({ baseUrl, children }) => {
     }
   };
 
+  const checkToken = async (): Promise<void> => {
+    const response = await fetchBff("Get");
+
+    if (response.ok) {
+      // If the session is valid, update the user state with the received claims data
+      setUser(await response.json());
+    } else if (response.status === 401) {
+      // If the user is not authenticated, redirect him to the login page
+      login();
+    } else {
+      console.error("Unexpected response from checking session:", response);
+    }
+  };
+
   // Function to log out the user
   const logout = async (): Promise<void> => {
     const response = await fetchBff("Logout", { method: "POST" });
@@ -95,7 +111,7 @@ export const BffProvider: FC<BffProviderProps> = ({ baseUrl, children }) => {
   return (
     // Providing the BFF context with relevant values and functions to be used across the application
     <BffContext.Provider
-      value={{ user, fetchBff, checkSession, login, logout }}
+      value={{ user, fetchBff, checkSession, login, logout, checkToken }}
     >
       {children}
     </BffContext.Provider>
