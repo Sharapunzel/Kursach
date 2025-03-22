@@ -1,26 +1,59 @@
-#root {
-  width: 100%;
-  height: 100%;
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
-    font-weight: 400;
-}
-
-* {
+*, body{
   box-sizing: border-box;
   padding: 0;
   margin: 0;
 }
+#root{
+  width: 100%;
+  min-height: 100dvh;
+}
+::selection{
+  background: #58d358;
+  color: #111111;
+}
 
-body {
+body{
   margin: 0;
   display: flex;
   place-items: center;
-  min-height: 100vh;
+  min-width: 320px;
+  min-height: 100dvh;
+  /*font-family: Montserrat, sans-serif;*/
+  font-weight: 400;
+  background-color: white;
+  font-size: calc(14px + 6 * ((100vw - 320px)/(1920 - 320)));
+  color: #333333;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+button{
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  border: none;
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+}
+button:focus-visible{
+  outline: solid 2px #888888 !important;
+}
+.ant-btn{
+  font-family: inherit;
+  font-weight: inherit;
+}
+.ant-btn > span{
+  font-size: inherit;
+}
+
+@media screen and (min-width: 1920px){
+  body{
+    font-size: 20px;
+  }
+}
+@media screen and (max-width: 320px){
+  body{
+    font-size: 14px;
+  }
 }
 

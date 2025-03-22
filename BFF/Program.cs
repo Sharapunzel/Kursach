@@ -15,7 +15,7 @@ namespace BFF
             var builder = WebApplication.CreateBuilder(args);
             var configuration = builder.Configuration;
 
-            //сервисы
+            //services
             builder.Services.AddControllers();
 
             builder.Services.AddEndpointsApiExplorer();
@@ -29,14 +29,14 @@ namespace BFF
             {
                 options.AddPolicy("CORS_BFF_Policy", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173", "http://localhost:8080", "http://192.168.0.102:5173")
+                    policy.WithOrigins("http://localhost:5173")
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();
                 });
             });
 
-            //прокси
+            //proxy
             builder.Services.AddReverseProxy()
                 .LoadFromConfig(configuration.GetSection("ReverseProxy"))
                 .AddTransforms(builder =>
@@ -48,8 +48,7 @@ namespace BFF
                     });
                 });
 
-            //доступ
-            builder.Services.AddAuthorization();
+            //access
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultScheme = "Cookies";
@@ -98,6 +97,7 @@ namespace BFF
                         RoleClaimType = "role"
                     };
                 });
+            builder.Services.AddAuthorization();
 
             var app = builder.Build();
 
@@ -115,8 +115,8 @@ namespace BFF
 
             app.MapControllers();
 
-            app.MapReverseProxy()
-                .RequireAuthorization();
+            //ReauireAuthorization is not working fine throuh http local Keycloak instance
+            app.MapReverseProxy().RequireAuthorization();
 
             app.Run();
         }
