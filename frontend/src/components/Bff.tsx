@@ -70,7 +70,7 @@ export const BffProvider: FC<BffProviderProps> = ({ baseUrl, children }) => {
       setUser(await response.json());
     } else if (response.status === 401) {
       // If the user is not authenticated, redirect him to the login page
-      login();
+      //login();
     } else {
       console.error("Unexpected response from checking session:", response);
     }

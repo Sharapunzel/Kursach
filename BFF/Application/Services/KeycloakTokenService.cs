@@ -1,8 +1,5 @@
 ﻿using BFF.API.Contracts;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.DataProtection;
 using Newtonsoft.Json;
-using System.Net;
 using System.Text;
 
 namespace BFF.Application.Services
@@ -29,9 +26,14 @@ namespace BFF.Application.Services
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
 
-                return response.IsSuccessStatusCode
-                    ? JsonConvert.DeserializeObject<KeycloakRefreshResponce>(responseContent)
-                    : null;
+                if (response.IsSuccessStatusCode)
+                {
+                    return JsonConvert.DeserializeObject<KeycloakRefreshResponce>(responseContent);
+                }
+                else
+                {
+                    throw new Exception($"Ошибка при обновлении токена: {responseContent}");
+                }
             }
         }
     }

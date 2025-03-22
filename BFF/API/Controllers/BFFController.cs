@@ -16,12 +16,10 @@ namespace BFF.Controllers
             _userTokenManagementService = userTokenManagementService;
         }*/
 
+        [Authorize]
         [HttpGet("[action]")]
         public async Task<IActionResult> Get()
         {
-            if (User.Identity?.IsAuthenticated != true)
-                return Unauthorized();
-
             var token = await HttpContext.GetTokenAsync("access_token");
 
             return Ok(new {token = token});
@@ -33,10 +31,11 @@ namespace BFF.Controllers
             return Ok(new { info = "Hello world!" });
         }
 
+        
         [HttpGet("[action]")]
         public ActionResult<IDictionary<string, string>> CheckSession()
         {
-            // return 401 Unauthorized to force SPA redirection to Login endpoint
+            //return 401 Unauthorized to force SPA redirection to Login endpoint
             if (User.Identity?.IsAuthenticated != true)
                 return Unauthorized();
 
@@ -53,6 +52,7 @@ namespace BFF.Controllers
         [HttpPost("[action]")]
         public IActionResult Logout()
         {
+            // Logic to handle logging out the user
             return SignOut();
         }
     }

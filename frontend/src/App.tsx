@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BffProvider, useBff } from "./components/Bff";
 import { UserClaims } from "./components/UserClaims";
 
@@ -28,6 +29,34 @@ const CheckSessionButton: React.FC = () => {
   );
 };
 
+const FetchAPIButton: React.FC = () => {
+  const { fetchBff } = useBff();
+  const [data, setData] = useState();
+
+  const fetchAPI = async (path: string): Promise<void> => {
+    const response = await fetchBff(path);
+
+    if (response.ok) {
+      // If the session is valid, update the user state with the received claims data
+      setData(await response.json());
+    } else {
+      console.error("Unexpected response from checking session:", response);
+    }
+  };
+
+  return (
+    <>
+      <div>{data ? `${data}` : "...loading Data..."}</div>
+      <button
+        className='logout-button'
+        onClick={() => fetchAPI("api/getWeather")}
+      >
+        Fetch API
+      </button>
+    </>
+  );
+};
+
 const App: React.FC = () => (
   <BffProvider baseUrl='http://localhost:8001/BFF'>
     <div className='card'>
@@ -42,6 +71,7 @@ const App: React.FC = () => (
     <div className='card'>
       <CheckSessionButton />
     </div>
+    <FetchAPIButton />
   </BffProvider>
 );
 

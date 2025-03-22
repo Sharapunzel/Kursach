@@ -1,13 +1,10 @@
 using BFF.Application.Services;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Negotiate;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Globalization;
+using Yarp.ReverseProxy.Transforms;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using System.Net.Http.Headers;
+using Microsoft.Extensions.Configuration;
 
 namespace BFF
 {
@@ -30,20 +27,29 @@ namespace BFF
 
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("DevelopClientPermission", policy =>
+                options.AddPolicy("CORS_BFF_Policy", policy =>
                 {
-                    policy.AllowAnyMethod()
-                                .AllowAnyHeader()
-                                .AllowAnyMethod()
-                                .WithOrigins("http://localhost:5173", "http://192.168.0.102:5173")
-                                .AllowCredentials();
+                    policy.WithOrigins("http://localhost:5173", "http://localhost:8080", "http://192.168.0.102:5173")
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials();
                 });
             });
 
+            //прокси
+            builder.Services.AddReverseProxy()
+                .LoadFromConfig(configuration.GetSection("ReverseProxy"))
+                .AddTransforms(builder =>
+                {
+                    builder.AddRequestTransform(async transformContext =>
+                    {
+                        var accessToken = await transformContext.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+                        transformContext.ProxyRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                    });
+                });
+
             //доступ
             builder.Services.AddAuthorization();
-
-            // настройка 
             builder.Services.AddAuthentication(options =>
             {
                 options.DefaultScheme = "Cookies";
@@ -52,17 +58,13 @@ namespace BFF
                 .AddCookie("Cookies", options =>
                 {
                     options.Cookie.Name = "bff_cookies";
-                    //options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                    //equeal to session time (refresh token lifespan)
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(5);
                     options.LoginPath = "/BFF/Login";
-                    options.Events.OnSigningOut = async e => { await e.HttpContext.SignOutAsync(); };
-
-                    var serviceProvider = builder.Services.BuildServiceProvider();
-                    var cookieValidationService = serviceProvider.GetRequiredService<CookieValidationHandler>();
-
-                    options.Events.OnValidatePrincipal = cookieValidationService.OnValidatePrincipal;
-
+                    options.Events.OnValidatePrincipal = async context =>
+                    {
+                        var cookieValidationService = context.HttpContext.RequestServices.GetRequiredService<CookieValidationHandler>();
+                        await cookieValidationService.OnValidatePrincipal(context);
+                    };
                 })
                 .AddOpenIdConnect("oidc", options =>
                 {
@@ -83,7 +85,6 @@ namespace BFF
                     options.Scope.Add("profile");
                     options.Scope.Add("email");
 
-                    // requests a refresh token
                     options.Scope.Add("offline_access");
                     options.RequireHttpsMetadata = false;
                     options.GetClaimsFromUserInfoEndpoint = true;
@@ -96,30 +97,7 @@ namespace BFF
                         NameClaimType = "name",
                         RoleClaimType = "role"
                     };
-                    /*options.Events = new OpenIdConnectEvents()
-                    {
-                        OnTokenValidated = c =>
-                        {
-                            c.Properties.StoreTokens(new[] { new AuthenticationToken
-                                {
-                                    Name = "id_token",
-                                    Value = c.ProtocolMessage.IdToken
-                                }
-                            });
-
-                            return Task.CompletedTask;
-                        }
-                    };*/
                 });
-
-            // adds services for token management
-            /*builder.Services.AddOpenIdConnectAccessTokenManagement();
-            builder.Services.AddClientCredentialsTokenManagement(options =>
-            {
-                options.CacheLifetimeBuffer = 60;
-                options.CacheKeyPrefix = "Duende.AccessTokenManagement.Cache::";
-            });*/
-
 
             var app = builder.Build();
 
@@ -129,13 +107,16 @@ namespace BFF
                 app.UseSwaggerUI();
             }
 
-            app.UseCors("DevelopClientPermission");
+            app.UseCors("CORS_BFF_Policy");
             //app.UseHttpsRedirection();
 
             app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.MapReverseProxy()
+                .RequireAuthorization();
 
             app.Run();
         }

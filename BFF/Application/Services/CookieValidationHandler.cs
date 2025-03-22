@@ -16,7 +16,15 @@ namespace BFF.Application.Services
         {
             if (context.Properties.Items.ContainsKey(".Token.expires_at"))
             {
-                var expire = DateTime.Parse(context.Properties.Items[".Token.expires_at"]);
+                var dateFromContext = context.Properties.Items[".Token.expires_at"];
+                if (dateFromContext == null)
+                {
+                    context.RejectPrincipal();
+                    context.Response.Redirect("/BFF/Login");
+                    return;
+                }
+
+                var expire = DateTime.Parse(dateFromContext);
 
                 DateTime now = DateTime.Now;
                 TimeSpan difference = expire - now;
@@ -26,20 +34,30 @@ namespace BFF.Application.Services
                 {
                     var refreshToken = context.Properties.Items[".Token.refresh_token"];
 
-                    var response = await _keycloakTokenService.RefreshAccessTokenAsync(refreshToken);
-
-                    if (response == null)
+                    if (refreshToken == null)
                     {
                         context.RejectPrincipal();
                         context.Response.Redirect("/BFF/Login");
                         return;
                     }
 
-                    context.Properties.Items[".Token.access_token"] = response.AccessToken;
-                    context.Properties.Items[".Token.refresh_token"] = response.RefreshToken;
-                    context.Properties.Items[".Token.expires_at"] = DateTime.Now.AddSeconds(response.ExpiresIn).ToString("s", System.Globalization.CultureInfo.InvariantCulture);
+                    try
+                    {
+                        var response = await _keycloakTokenService.RefreshAccessTokenAsync(refreshToken);
 
-                    context.ShouldRenew = true;
+                        context.Properties.Items[".Token.access_token"] = response.AccessToken;
+                        context.Properties.Items[".Token.refresh_token"] = response.RefreshToken;
+                        context.Properties.Items[".Token.expires_at"] = DateTime.Now.AddSeconds(response.ExpiresIn).ToString("s", CultureInfo.InvariantCulture);
+
+                        context.ShouldRenew = true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Произошла ошибка при обновлении токена: {ex.Message}");
+                        context.RejectPrincipal();
+                        context.Response.Redirect("/BFF/Login");
+                        return;
+                    }
                 }
                 else if (expire > now)
                 {
