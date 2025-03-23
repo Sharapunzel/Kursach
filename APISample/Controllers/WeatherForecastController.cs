@@ -26,5 +26,19 @@ namespace APISample.Controllers
 
             return Ok(weather);
         }
+
+        [Authorize(Policy = "RequireAdminRole")]
+        [HttpGet("[action]")]
+        public async Task<IActionResult> getWeather2()
+        {
+            var weather = new WeatherForecast
+            {
+                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
+                TemperatureC = Random.Shared.Next(-20, 55),
+                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
+            };
+
+            return Ok(weather);
+        }
     }
 }

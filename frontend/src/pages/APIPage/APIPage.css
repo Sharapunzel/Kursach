@@ -1,0 +1,34 @@
+.api_page{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+.api_page_header{
+    font-size: 130%;
+    font-weight: 600;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #64F86A;
+}
+.api_page_cards{
+    width: 100%;
+    display: flex;
+    gap: 30px;
+}
+.api_page_card{
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+}
+.api_page_card_header{
+    font-size: 120%;
+    font-weight: 500;
+    margin-bottom: 30px;
+    text-align: right;
+}
+.api_page_card > div:not(.api_page_card_header){
+    margin-bottom: 10px;
+    text-align: right;
+}

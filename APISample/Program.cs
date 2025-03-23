@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
+using System.Text.Json;
 
 namespace APISample
 {
@@ -64,7 +65,43 @@ namespace APISample
                         ValidIssuer = builder.Configuration["Authentication:ValidIssuer"]
                     };
                 });
-            builder.Services.AddAuthorization();
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("RequireJustUserRole", policy =>
+                    policy.RequireAuthenticatedUser()
+                    .RequireAssertion(context =>
+                    {
+                        var rolesClaim = context.User.FindFirst(c => c.Type == "resource_access")?.Value;
+                        if (string.IsNullOrEmpty(rolesClaim))
+                            return false;
+
+                        var resourceAccess = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(rolesClaim);
+                        if (resourceAccess == null ||
+                            !resourceAccess.TryGetValue("APISample-client", out var clientRoles) ||
+                            clientRoles == null ||
+                            !clientRoles.TryGetValue("roles", out var roles))
+                            return false;
+
+                        return roles.Contains("just_user", StringComparer.Ordinal);
+                    }));
+                options.AddPolicy("RequireAdminRole", policy =>
+                    policy.RequireAuthenticatedUser()
+                    .RequireAssertion(context =>
+                    {
+                        var rolesClaim = context.User.FindFirst(c => c.Type == "resource_access")?.Value;
+                        if (string.IsNullOrEmpty(rolesClaim))
+                            return false;
+
+                        var resourceAccess = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(rolesClaim);
+                        if (resourceAccess == null ||
+                            !resourceAccess.TryGetValue("APISample-client", out var clientRoles) ||
+                            clientRoles == null ||
+                            !clientRoles.TryGetValue("roles", out var roles))
+                            return false;
+
+                        return roles.Contains("admin", StringComparer.Ordinal);
+                    }));
+            });
 
 
 
