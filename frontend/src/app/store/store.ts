@@ -26,14 +26,14 @@ export default class Store{
     }
 
     logout() {
-        if (window.confirm("Вы уверены что ливаете?")){
+        if (window.confirm("Вы уверены что хотите закончить сессию?")){
             this.AuthLoadingON();
             this.setAuth(false);
             this.setUser(null);
             BFF_Service.Logout()
                 .then((res: any) => {
                     if (res.status === 200) {
-                        alert("Произошел разлогин!");
+                        alert("Сессия окончена!");
                     }
                 })
                 .catch((err) => {

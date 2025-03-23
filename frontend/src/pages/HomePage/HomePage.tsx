@@ -14,9 +14,6 @@ function HomePage(){
                     <strong>{claim}</strong>: {String(value)}
                 </div>
             ))}
-            <Button onClick={store.logout}>
-                Logout Button
-            </Button>
         </div>
     )
 

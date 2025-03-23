@@ -1,13 +1,14 @@
-import {Suspense, useContext, useEffect} from "react";
+import {Suspense, useContext} from "react";
 import {Context} from "../RootProviderContainer/RootProviderContainer";
 import {SkeletonTheme} from "react-loading-skeleton";
 import App from "../App";
 import LoadingPage from "../../../widgets/UIPages/LoadingPage/LoadingPage";
 import ErrorPage from "../../../widgets/UIPages/ErrorPage/ErrorPage";
 import {observer} from "mobx-react-lite";
-import {SPARoutes} from "../../routes/spa/SPARoutes";
 import {useNavigate} from "react-router-dom";
-import {Button} from "antd";
+import Header from "../../../widgets/Header/Header";
+import Footer from "../../../widgets/Footer/Footer";
+import "./Layout.css";
 
 
 function Layout(){
@@ -16,18 +17,11 @@ function Layout(){
 
     return(
         <div className={"root_layout"}>
-            <header>
-                <div>Хедер</div>
-                <Button onClick={() => {navigate(SPARoutes.Private.HOME)}}>Go Home</Button>
-                <div>
-                    <div>Login state:</div>
-                    <div>{store.isAuth === true ? "true" : "false"}</div>
-                </div>
-            </header>
+            <Header/>
             <div className="root_layout_page_container">
-                {(store.isDataLoading || store.isAuthLoading) && <LoadingPage/>}
-                {store.isError && <ErrorPage/>}
                 <div className="root_layout_page">
+                    {(store.isDataLoading || store.isAuthLoading) && <LoadingPage/>}
+                    {store.isError && <ErrorPage/>}
                     <Suspense fallback={<LoadingPage/>}>
                         <SkeletonTheme height={30}>
                             <App/>
@@ -35,9 +29,7 @@ function Layout(){
                     </Suspense>
                 </div>
             </div>
-            <footer>
-                Футер
-            </footer>
+            <Footer/>
         </div>
     )
 }
