@@ -10,6 +10,17 @@ namespace BFF.Controllers
     public class BFFController : ControllerBase
     {
         [HttpGet("[action]")]
+        public async Task<IActionResult> GetToken()
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return Unauthorized();
+
+            var token = await HttpContext.GetTokenAsync("access_token");
+
+            return Ok(new { token = token });
+        }
+
+        [HttpGet("[action]")]
         public ActionResult<IDictionary<string, string>> CheckSession()
         {
             if (User.Identity?.IsAuthenticated != true)

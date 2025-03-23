@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace APISample.Controllers
 {
@@ -11,23 +13,18 @@ namespace APISample.Controllers
             "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
         };
 
-        private readonly ILogger<apiController> _logger;
-
-        public apiController(ILogger<apiController> logger)
-        {
-            _logger = logger;
-        }
-
+        [Authorize]
         [HttpGet("[action]")]
-        public IEnumerable<WeatherForecast> getWeather()
+        public async Task<IActionResult> getWeather()
         {
-            return Enumerable.Range(1, 5).Select(index => new WeatherForecast
+            var weather = new WeatherForecast
             {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(1)),
                 TemperatureC = Random.Shared.Next(-20, 55),
                 Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
+            };
+
+            return Ok(weather);
         }
     }
 }

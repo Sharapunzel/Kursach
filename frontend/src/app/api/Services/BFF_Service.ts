@@ -12,4 +12,8 @@ export default class BFF_Service{
         return $api.get<UserData>(`${BFFRoutes.CHECK_SESSION}`);
     }
 
+    static async GetToken():Promise<AxiosResponse<GetToken>>{
+        return $api.get<GetToken>(`${BFFRoutes.GET_TOKEN}`);
+    }
+
 }

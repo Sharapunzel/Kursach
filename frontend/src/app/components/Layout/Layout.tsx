@@ -19,9 +19,9 @@ function Layout(){
         <div className={"root_layout"}>
             <Header/>
             <div className="root_layout_page_container">
+                {(store.isDataLoading || store.isAuthLoading) && <LoadingPage/>}
+                {store.isError && <ErrorPage/>}
                 <div className="root_layout_page">
-                    {(store.isDataLoading || store.isAuthLoading) && <LoadingPage/>}
-                    {store.isError && <ErrorPage/>}
                     <Suspense fallback={<LoadingPage/>}>
                         <SkeletonTheme height={30}>
                             <App/>

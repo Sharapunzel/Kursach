@@ -1,4 +1,7 @@
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
+
 namespace APISample
 {
     public class Program
@@ -7,12 +10,38 @@ namespace APISample
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Type = SecuritySchemeType.Http,
+                    Scheme = "bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "¬ведите JWT токен"
+                });
+
+                options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer",
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
+            });
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("CORS_API_Policy", policy =>
@@ -23,10 +52,24 @@ namespace APISample
                         .AllowCredentials();
                 });
             });
+            
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.RequireHttpsMetadata = false;
+                    options.Audience = builder.Configuration["Authentication:Audience"];
+                    options.MetadataAddress = builder.Configuration["Authentication:MetadataAddress"]!;
+                    options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
+                    {
+                        ValidIssuer = builder.Configuration["Authentication:ValidIssuer"]
+                    };
+                });
+            builder.Services.AddAuthorization();
+
+
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -36,9 +79,8 @@ namespace APISample
             app.UseCors("CORS_API_Policy");
 
             //app.UseHttpsRedirection();
-
+            app.UseAuthentication();
             app.UseAuthorization();
-
 
             app.MapControllers();
 

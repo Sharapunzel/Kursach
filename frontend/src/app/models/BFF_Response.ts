@@ -12,3 +12,7 @@ interface UserData {
     family_name: string;
     email: string;
 }
+
+interface GetToken{
+    token: string;
+}
