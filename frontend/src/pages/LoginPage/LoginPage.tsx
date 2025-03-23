@@ -2,7 +2,6 @@ import {Button} from "antd";
 import {useContext} from "react";
 import {Context} from "../../app/components/RootProviderContainer/RootProviderContainer";
 import {observer} from "mobx-react-lite";
-import {useBff} from "../../app/auth/BffProvider";
 
 function LoginPage(){
 

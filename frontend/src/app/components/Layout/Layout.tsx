@@ -8,14 +8,11 @@ import {observer} from "mobx-react-lite";
 import {SPARoutes} from "../../routes/spa/SPARoutes";
 import {useNavigate} from "react-router-dom";
 import {Button} from "antd";
-import {useBff} from "../../auth/BffProvider";
 
 
 function Layout(){
     const {store} = useContext(Context);
-
-
-    //useFetch(BFF_Service.CheckSession, store.setUser, undefined, [], undefined, undefined, true);
+    const navigate = useNavigate();
 
     return(
         <div className={"root_layout"}>
