@@ -1,6 +1,8 @@
 import {useContext} from "react";
 import {Context} from "../../app/components/RootProviderContainer/RootProviderContainer";
 import {observer} from "mobx-react-lite";
+import {Button} from "antd";
+import {useBff} from "../../app/auth/BffProvider";
 
 function HomePage(){
 
@@ -13,6 +15,9 @@ function HomePage(){
                     <strong>{claim}</strong>: {String(value)}
                 </div>
             ))}
+            <Button onClick={store.logout}>
+                Logout Button
+            </Button>
         </div>
     )
 

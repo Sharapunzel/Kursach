@@ -8,8 +8,8 @@ export default class BFF_Service{
         return $api.post<any>(`${BFFRoutes.LOGOUT}`);
     }
 
-    static async CheckSession():Promise<AxiosResponse<any>>{
-        return $api.get<any>(`${BFFRoutes.CHECK_SESSION}`);
+    static async CheckSession():Promise<AxiosResponse<UserData>>{
+        return $api.get<UserData>(`${BFFRoutes.CHECK_SESSION}`);
     }
 
 }

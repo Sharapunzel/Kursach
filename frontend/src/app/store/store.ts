@@ -1,14 +1,16 @@
 import {makeAutoObservable, observable, runInAction} from "mobx";
 import $api from "../api/axois";
 import BFF_Service from "../api/Services/BFF_Service";
+import {ErrorResponse} from "../models/ErrorResponse";
+import {SPARoutes} from "../routes/spa/SPARoutes";
+import {BFFRoutes} from "../routes/api/BFFRoutes";
 
 
 export default class Store{
 
-    user: string = "";
-    Logout: boolean = true;
+    user: UserData | null = null;
     isAuth: boolean = false;
-    isAuthLoading: boolean = true;
+    isAuthLoading: boolean = false;
     isDataLoading: boolean = false;
     isError: boolean = false;
     errorMessage: string = "Что-то пошло не так"
@@ -19,52 +21,47 @@ export default class Store{
     }
 
 
-    //Methods
-    async login() {
-        if(!this.isAuth){
-            window.location.replace(`${import.meta.env.VITE_BASE_BFF_URL}/Login`);
-        }
+    login(){
+        window.location.replace(`${import.meta.env.VITE_BASE_BFF_URL}${BFFRoutes.LOGIN}`);
     }
 
-    async logout() {
-        try {
+    logout() {
+        if (window.confirm("Вы уверены что ливаете?")){
+            this.AuthLoadingON();
             this.setAuth(false);
-            this.setLogout(true);
-            await BFF_Service.Logout();
-        } catch (e: any) {
-            console.log(e.response)
+            this.setUser(null);
+            BFF_Service.Logout()
+                .then((res: any) => {
+                    if (res.status === 200) {
+                        alert("Произошел разлогин!");
+                    }
+                })
+                .catch((err) => {
+                    if (err.response?.data && (err.response.data as ErrorResponse).status && (err.response.data as ErrorResponse).message){
+                        const errorResponse:ErrorResponse = err.response.data as ErrorResponse;
+                        this.ErrorON(errorResponse.message);
+                    }
+                    else{
+                        this.ErrorON(err.toString());
+                    }
+                })
+                .finally(() => {
+                    this.AuthLoadingOFF();
+                })
         }
-    }
-
-    async checkAuth() {
-        try {
-            const response = await BFF_Service.CheckSession();
-            this.setLogout(false);
-            this.setAuth(true)
-            // this.setRoles(response.data.roles)
-            this.setUser(response.data.toString())
-        } catch (e: any) {
-            await this.logout()
-        }
-    }
+    };
 
 
-
-    //Setters
-    setUser(user: string) {
-        runInAction(() => {
-            this.user = user
+    setAuth(bool: boolean) {
+        runInAction(()=>{
+            this.isAuth = bool;
         })
     }
 
-    // setRoles(rols: string[]) {
-    //     runInAction(() => {
-    //         this.roles = rols
-    //     })
-    // }
-
-    setAuth(bool: boolean) {
-        this.isAuth = bool;
+    setUser(user: UserData | null){
+        runInAction(()=>{
+            this.user = user;
+        })
     }
 
     setAuthLoading(bool: boolean) {
@@ -80,12 +77,9 @@ export default class Store{
     }
 
     setErrorMessage(message: string) {
-        this.isError = message;
+        this.errorMessage = message;
     }
 
-    setLogout(bool: boolean) {
-        this.Logout = bool;
-    }
 
 
     //Actions

@@ -5,23 +5,23 @@ import App from "../App";
 import LoadingPage from "../../../widgets/UIPages/LoadingPage/LoadingPage";
 import ErrorPage from "../../../widgets/UIPages/ErrorPage/ErrorPage";
 import {observer} from "mobx-react-lite";
+import {SPARoutes} from "../../routes/spa/SPARoutes";
+import {useNavigate} from "react-router-dom";
+import {Button} from "antd";
+import {useBff} from "../../auth/BffProvider";
 
 
 function Layout(){
     const {store} = useContext(Context);
 
-    async function refresh() {
-        await store.checkAuth()
-    }
 
-    useEffect(() => {
-        refresh()
-    }, [])
+    //useFetch(BFF_Service.CheckSession, store.setUser, undefined, [], undefined, undefined, true);
 
     return(
         <div className={"root_layout"}>
             <header>
                 <div>Хедер</div>
+                <Button onClick={() => {navigate(SPARoutes.Private.HOME)}}>Go Home</Button>
                 <div>
                     <div>Login state:</div>
                     <div>{store.isAuth === true ? "true" : "false"}</div>
