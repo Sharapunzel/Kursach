@@ -3,6 +3,7 @@ import {useState} from "react";
 import useFetch from "../../shared/hooks/UseFetch";
 import API_Service from "../../app/api/Services/API_Service";
 import "./APIPage.css";
+import { WeatherForecast } from "../../app/models/API_Response";
 
 function APIPage(){
 

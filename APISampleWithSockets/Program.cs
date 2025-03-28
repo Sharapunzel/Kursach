@@ -24,7 +24,7 @@ namespace APISampleWithSockets
                     Scheme = "bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Description = "Введите JWT токен"
+                    Description = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ JWT пїЅпїЅпїЅпїЅпїЅ"
                 });
 
                 options.AddSecurityRequirement(new OpenApiSecurityRequirement

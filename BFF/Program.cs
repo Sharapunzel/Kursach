@@ -43,6 +43,7 @@ namespace BFF
                 {
                     builder.AddRequestTransform(async transformContext =>
                     {
+                        Console.WriteLine(transformContext.ProxyRequest.RequestUri?.ToString());
                         var accessToken = await transformContext.HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
                         transformContext.ProxyRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                     });

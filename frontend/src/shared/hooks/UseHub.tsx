@@ -1,3 +1,4 @@
+import { HubConnectionBuilder } from "@microsoft/signalr";
 import {useEffect} from "react";
 
 function useHub(
@@ -7,33 +8,34 @@ function useHub(
     params: string
 ){
     useEffect(() => {
-        const connection = new signalR.HubConnectionBuilder()
+        const connection = new HubConnectionBuilder()
             .withUrl(hubUrl)
             .withAutomaticReconnect()
-            .configureLogging(signalR.LogLevel.None)
             .build();
 
-        const establichConnection = async () => {
+        const establishConnection = async () => {
             try{
                 await connection.start();
 
-                connection.on(hubMethodForListening, (data) => [
+                connection.on(hubMethodForListening, (data: any) => [
                     dataSetter(data)
                 ])
 
                 connection.invoke("Subscribe", params);
+                console.log("subscr")
             }
             catch (e) {
                 console.log(e);
             }
         }
 
-        establichConnection();
+        establishConnection();
 
         return () => {
             const clearConnection = async () => {
                 await connection.invoke("Unsubscribe", params);
                 await connection.stop();
+                console.log("unsubscr")
             }
             clearConnection();
         }
