@@ -1,8 +1,10 @@
 ﻿using APISampleWithSockets.Application.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace APISampleWithSockets.API.Hubs
 {
+    [Authorize]
     public class LiveHub(SelectedTagManager selectedTagManager) : Hub
     {
 
