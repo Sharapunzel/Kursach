@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace APISampleWithSockets.Controllers
+namespace APISampleWithSockets.API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
