@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
+using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace BFF
 {
@@ -12,6 +15,14 @@ namespace BFF
     {
         public static void Main(string[] args)
         {
+            var rootPath = Directory.GetCurrentDirectory();
+            var keyStoragePath = Path.Combine(rootPath, "keys");
+
+            if (!Directory.Exists(keyStoragePath))
+            {
+                Directory.CreateDirectory(keyStoragePath);
+            }
+
             var builder = WebApplication.CreateBuilder(args);
             var configuration = builder.Configuration;
 
@@ -35,6 +46,15 @@ namespace BFF
                         .AllowCredentials();
                 });
             });
+
+            builder.Services.AddDataProtection()
+                .SetApplicationName("bff_app")
+                .PersistKeysToFileSystem(new DirectoryInfo(keyStoragePath))
+                .UseCryptographicAlgorithms(new AuthenticatedEncryptorConfiguration
+                {
+                    EncryptionAlgorithm = EncryptionAlgorithm.AES_256_CBC,
+                    ValidationAlgorithm = ValidationAlgorithm.HMACSHA256
+                });
 
             //proxy
             builder.Services.AddReverseProxy()

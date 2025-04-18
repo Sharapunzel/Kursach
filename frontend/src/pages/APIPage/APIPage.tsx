@@ -12,7 +12,7 @@ function APIPage(){
 
     useFetch(API_Service.GetWeather, setData);
     useFetch(API_Service.GetWeather2, setData2);
-2
+    
     return(
         <div className={"api_page"}>
             <div className={"api_page_header"}>
