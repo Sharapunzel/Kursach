@@ -115,7 +115,14 @@ namespace BFF
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         NameClaimType = "name",
-                        RoleClaimType = "role"
+                        RoleClaimType = "role",
+                        ValidateIssuer = true,
+                        ValidIssuer = "http://localhost:8080/realms/master",
+                        ValidateAudience = true,
+                        ValidAudience = "BFF-client",
+                        ValidateLifetime = true,
+                        RequireExpirationTime = true,
+                        RequireSignedTokens = true,
                     };
                 });
             builder.Services.AddAuthorization();
