@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption.ConfigurationModel;
 using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 namespace BFF
 {
@@ -40,7 +42,7 @@ namespace BFF
             {
                 options.AddPolicy("CORS_BFF_Policy", policy =>
                 {
-                    policy.WithOrigins("http://localhost:5173")
+                    policy.WithOrigins("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost", "http://127.0.0.1", "http://localhost:8080", "http://127.0.0.1:8080")
                         .AllowAnyMethod()
                         .AllowAnyHeader()
                         .AllowCredentials();
@@ -105,12 +107,43 @@ namespace BFF
                     options.Scope.Add("profile");
                     options.Scope.Add("email");
 
-                    options.Scope.Add("offline_access");
                     options.RequireHttpsMetadata = false;
                     options.GetClaimsFromUserInfoEndpoint = true;
                     options.MapInboundClaims = false;
                     options.SaveTokens = true;
                     options.UsePkce = true;
+
+                    options.Events = new OpenIdConnectEvents
+                    {
+                        OnRedirectToIdentityProvider = context =>
+                        {
+                            // Для API-запросов блокируем редирект на Keycloak
+                            if (context.Request.Path.StartsWithSegments("/BFF/api") || context.Request.Path.StartsWithSegments("/BFF/api-ws") || context.Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                            {
+                                context.Response.StatusCode = 401;
+                                context.HandleResponse(); // Прерываем обработку
+                                return Task.CompletedTask;
+                            }
+
+                            // Для не-API запросов разрешаем стандартное поведение
+                            return Task.CompletedTask;
+                        },
+
+                        OnRemoteFailure = context =>
+                        {
+                            // Обрабатываем ошибки аутентификации
+                            if (context.Failure is OpenIdConnectProtocolException)
+                            {
+                                if (context.Request.Path.StartsWithSegments("/api") || context.Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                                {
+                                    context.Response.StatusCode = 401;
+                                    context.HandleResponse();
+                                    return Task.CompletedTask;
+                                }
+                            }
+                            return Task.CompletedTask;
+                        }
+                    };
 
                     options.TokenValidationParameters = new TokenValidationParameters
                     {

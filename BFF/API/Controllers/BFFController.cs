@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -36,9 +38,10 @@ namespace BFF.Controllers
         }
 
         [HttpPost("[action]")]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            return SignOut();
+            // Offline session will not revoke. Use regular sessions instead
+            return SignOut(new AuthenticationProperties { RedirectUri = "/" }, ["Cookies", "oidc"] );
         }
     }
 }
